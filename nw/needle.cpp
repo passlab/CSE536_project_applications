@@ -24,9 +24,7 @@ long long get_time()
 
 }
 
-#ifdef OMP_OFFLOAD
-#pragma omp declare target
-#endif
+
 int maximum( int a,
 		 int b,
 		 int c){
@@ -42,9 +40,7 @@ int maximum( int a,
 	else
 	return(k);
 }
-#ifdef OMP_OFFLOAD
-#pragma omp end declare target
-#endif
+
 
 
 int blosum62[24][24] = {
@@ -103,13 +99,7 @@ void usage(int argc, char **argv)
 void nw_optimized(int *input_itemsets, int *output_itemsets, int *referrence,
         int max_rows, int max_cols, int penalty)
 {
-#ifdef OMP_OFFLOAD
-    int transfer_size = max_rows * max_cols;
-    #pragma omp target data map(to: max_cols, penalty, referrence[0:transfer_size]) map(input_itemsets[0:transfer_size])
-    {
 
-    #pragma omp target 
-#endif
     for( int blk = 1; blk <= (max_cols-1)/BLOCK_SIZE; blk++ )
     {
 #ifdef OPENMP
@@ -167,9 +157,7 @@ void nw_optimized(int *input_itemsets, int *output_itemsets, int *referrence,
         
     printf("Processing bottom-right matrix\n");
 
-#ifdef OMP_OFFLOAD
-    #pragma omp target
-#endif
+
     for ( int blk = 2; blk <= (max_cols-1)/BLOCK_SIZE; blk++ )
     {
 #ifdef OPENMP
@@ -225,9 +213,7 @@ void nw_optimized(int *input_itemsets, int *output_itemsets, int *referrence,
         }
     }
 
-#ifdef OMP_OFFLOAD
-    }
-#endif
+
    
 }
 
