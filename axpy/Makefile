@@ -1,15 +1,15 @@
 default: axpy_omp axpy_cilkplus axpy_c++_mthread
 
-axpy_omp: axpy_omp_parallel.c
+axpy_omp_parallel: axpy_omp_parallel.c
 	icc -O0 -openmp axpy_omp_parallel.c -o axpy_omp-icc
         
-axpy_omp: axpy_omp_task.c 
+axpy_omp_task: axpy_omp_task.c 
 	icc -O0 -openmp axpy_omp_task.c -o axpy_omp-icc
 
-axpy_cilkplus: axpy_cilkplus_cilk_for.c
+axpy_cilkplus_for: axpy_cilkplus_cilk_for.c
 	icc -O0 axpy_cilkplus_cilk_for.c -o axpy_cilkplus-icc
 
-axpy_cilkplus: axpy_cilkplus_spawn.c
+axpy_cilkplus_spwan: axpy_cilkplus_spawn.c
 	icc -O0 axpy_cilkplus_spawn.c -o axpy_cilkplus-icc
 
 axpy_c++_thread: axpy_c++_thread.cpp
