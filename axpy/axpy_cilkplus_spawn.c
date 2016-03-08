@@ -42,10 +42,8 @@ double check(REAL *A, REAL B[], int N) {
     return sum;
 }
 
-void axpy_base(int N, REAL *Y, REAL *X, REAL a);
+
 void axpy_cilkplus(int N, REAL *Y, REAL *X, REAL a);
-void axpy_cilkplus_for(int N, REAL *Y, REAL *X, REAL a);
-void axpy_cilk_for(int N, REAL *Y, REAL *X, REAL a);
 
 int main(int argc, char *argv[]) {
     int N = VECTOR_LENGTH;
@@ -70,59 +68,31 @@ int main(int argc, char *argv[]) {
     init(Y_base, N);
     memcpy(Y_parallel, Y_base, N * sizeof(REAL));
 
-    /* example run */
-    double elapsed = read_timer();
-    axpy_base(N, Y_base, X, a);
-    elapsed = (read_timer() - elapsed);
-
+    
     int i;
     int num_runs = 10;
     double elapsed_cilkplus = read_timer();
     for (i=0; i<num_runs; i++) axpy_cilkplus(N, Y_parallel, X, a);
     elapsed_cilkplus = (read_timer() - elapsed_cilkplus)/num_runs;
     
-    double elapsed_cilkplus_for = read_timer();
-    for (i=0; i<num_runs; i++) axpy_cilkplus_for(N, Y_parallel, X, a);
-    elapsed_cilkplus_for = (read_timer() - elapsed_cilkplus_for)/num_runs;
     
-    double elapsed_cilk_for = read_timer();
-    for (i=0; i<num_runs; i++) axpy_cilk_for(N, Y_parallel, X, a);
-    elapsed_cilk_for = (read_timer() - elapsed_cilk_for)/num_runs;
-
     /* you should add the call to each function and time the execution */
     printf("======================================================================================================\n");
     printf("\tAXPY: Y[N] = Y[N] + a*X[N], N=%d, %d threads for dist\n", N, num_threads);
     printf("------------------------------------------------------------------------------------------------------\n");
     printf("Performance:\t\t\tRuntime (ms)\t MFLOPS \t\tError (compared to base)\n");
     printf("------------------------------------------------------------------------------------------------------\n");
-    printf("axpy_base:\t\t\t%4f\t%4f \t\t%g\n", elapsed * 1.0e3, (2.0 * N) / (1.0e6 * elapsed), check(Y_base, Y_base, N));
-    printf("axpy_cilkplus:\t\t\t%4f\t%4f \t\t%g\n", elapsed_cilkplus * 1.0e3, (2.0 * N) / (1.0e6 * elapsed_cilkplus), check(Y_base,
+     printf("axpy_cilkplus_sync:\t\t\t%4f\t%4f \t\t%g\n", elapsed_cilkplus * 1.0e3, (2.0 * N) / (1.0e6 * elapsed_cilkplus), check(Y_base,
                                                                                                               Y_parallel, N));
-    printf("axpy_cilkplus_for:\t\t%4f\t%4f \t\t%g\n", elapsed_cilkplus_for * 1.0e3, (2.0 * N) / (1.0e6 * elapsed_cilkplus_for), check(Y_base,
-                                                                                                              Y_parallel, N));
-    printf("axpy_cilk_for:\t\t\t%4f\t%4f \t\t%g\n", elapsed_cilk_for * 1.0e3, (2.0 * N) / (1.0e6 * elapsed_cilk_for), check(Y_base,
-                                                                                                              Y_parallel, N));
+    
+free(Y_base);
+free(Y_parallel);
+free(X);
 
-    free(Y_base);
-    free(Y_parallel);
-    free(X);
-
-    return 0;
+return 0;
 }
 
-void axpy_base(int N, REAL *Y, REAL *X, REAL a) {
-    int i;
-    for (i = 0; i < N; ++i)
-        Y[i] += a * X[i];
-}
-
-void axpy_sub(int start, int end, REAL *Y, REAL *X, REAL a) {
-    int i;
-    for (i = start; i < end; ++i)
-        Y[i] += a * X[i];
-}
-
-#define BASE 32
+#define BASE 1000
 void axpy_cilkplus(int N, REAL *Y, REAL *X, REAL a) {
     if (N<=BASE) {
        int i;
@@ -135,24 +105,7 @@ void axpy_cilkplus(int N, REAL *Y, REAL *X, REAL a) {
     }
 }
 
-void axpy_cilkplus_for(int N, REAL *Y, REAL *X, REAL a) {
-    int i;
-    int nworkers = __cilkrts_get_nworkers();
-    int Nt = N/nworkers;
-    for (i=0; i<nworkers; i++) {
-	int start, end;
-	start = i*Nt;
-	end = (i+1)*Nt;
-        cilk_spawn axpy_sub(start, end, Y, X, a);
-    }
-    cilk_sync;
-}
 
-void axpy_cilk_for(int N, REAL *Y, REAL *X, REAL a) {
-    int i;
-    cilk_for (i = 0; i < N; ++i)
-        Y[i] += a * X[i];
-}
 /*
  * ssh -l<netid> lennon.secs.oakland.edu
  * . /opt/intel/bin/iccvars.sh -arch intel64 -platform linux
