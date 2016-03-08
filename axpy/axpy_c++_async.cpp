@@ -6,11 +6,13 @@
 #include <thread> 
 #include <stdlib.h> 
 #include <sys/timeb.h>
+//#define REAL REAL
 
 using namespace std;
-const int NUM_THREADS=5;
-//#define NUM_THREADS 5
-const int vector_length=102400;
+
+#define NUM_THREADS 5
+#define vector_length 102400
+
 #define BASE 1000
 #define REAL float
 
@@ -55,14 +57,11 @@ void axpy_async_task(int N, REAL *Y, REAL *X, REAL a) {
           Y[i] += a * X[i];
             } else {
 
-   std::future<float> f1  = std::async(std::launch::async,axpy_async_task,N/2, Y, X, a);
-         axpy_async_task(N-N/2, Y+N/2, X+N/2, a);
-qian.weebly.com:q
-     
+   std::future<void> f1  = std::async(std::launch::async,axpy_async_task,N/2, Y, X, a);
+        axpy_async_task(N-N/2, Y+N/2, X+N/2, a);
+   f1.get();     
                    }
     }
-
-void axpy_async_task(int N, REAL *Y, REAL *X, REAL a);
 
 //===========================          
 int main() 
@@ -73,10 +72,9 @@ REAL Y[N];
 REAL a=0.1234;
 double elapsed;
 double elapsed_dist;
-std::thread thread[NUM_THREADS];
 
 elapsed=read_timer();
- axpy_async_task( N, REAL *Y, REAL *X,a, NUM_THREADS);
+ axpy_async_task( N, Y, X, a);
 elapsed=(read_timer() - elapsed); 
 
     printf("======================================================================================================\n");

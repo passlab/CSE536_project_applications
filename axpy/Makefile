@@ -12,12 +12,12 @@ axpy_cilkplus: axpy_cilkplus_cilk_for.c
 axpy_cilkplus: axpy_cilkplus_spawn.c
 	icc -O0 axpy_cilkplus_spawn.c -o axpy_cilkplus-icc
 
+axpy_c++_thread: axpy_c++_thread.cpp
+	icc -std=c++11 -pthread axpy_c++_thread.cpp -O0 axpyct
 
-axpy_c++_mthread: axpy_c++_thread.cpp
-	icc -std=c++11 -pthread axpy_c++_thread.cpp -o0 axpyct
-
-axpy_c++_mthread: axpy_c++_async.cpp
-	icc -std=c++11 -pthread axpy_c++_async.cpp -o0 axpyct
+axpy_c++_async: axpy_c++_async.cpp
+#	cc -std=c++11 -pthread axpy_c++_async.cpp -O0 axpyct
+	g++ -std=c++11 axpy_c++_async.cpp -lpthread -O0
 
 clean:
 	rm -rf ${OBJS} *.log
