@@ -84,23 +84,26 @@ REAL a=0.1234;
 srand48((1<<12));
 REAL *X =(REAL *) malloc(sizeof(REAL)*N);
 REAL *Y = (REAL *) malloc(sizeof(REAL)*N);
+REAL *Y_parallel = (REAL *) malloc(sizeof(REAL)*N);
+
 init(X,N);
 init(Y,N);
 
-
+int i, num_runs=10;
 elapsed=read_timer();
- axpy_async_task( N, Y, X, a);
-elapsed=(read_timer() - elapsed); 
+ for (i=0;i<num_runs; i++) axpy_async_task( N, Y, X, a);
+elapsed=(read_timer() - elapsed)/num_runs; 
 
     printf("======================================================================================================\n");
     printf("\tAXPY: Y[N] = Y[N] + a*X[N], N=%d, %d tasks for dist\n", N, M);
     printf("------------------------------------------------------------------------------------------------------\n");
     printf("Performance:\t\tRuntime (ms)\t MFLOPS \t\tError (compared to base)\n");
     printf("------------------------------------------------------------------------------------------------------\n");
-    printf("axpy_c++_async:\t\t%4f\t%4f \t\t%g\n", elapsed * 1.0e3, (2.0 * N) / (1.0e6 * elapsed), check(Y, Y, N));
+    printf("axpy_c++_async:\t\t%4f\t%4f \t\t%g\n", elapsed * 1.0e3, (2.0 * N) / (1.0e6 * elapsed), check(Y, Y_parallel, N));
   
 
 free(Y);
+free(Y_parallel);
 free(X);
 
 return 0;
