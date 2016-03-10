@@ -8,6 +8,7 @@
 #include <math.h>
 #include <stdio.h>
 
+using namespace std;
 
 /* read timer in second */
 double read_timer() {
@@ -22,7 +23,7 @@ double read_timer_ms() {
     ftime(&tm);
     return (double) tm.time * 1000.0 + (double) tm.millitm;
 }
-#define threadno 64 
+#define NUM_THREADS 64 
 #define vector_length 102400
 #define REAL float
 
@@ -58,27 +59,26 @@ void axpy_cmth(int start,int end, REAL *Y, REAL *X, REAL a) {
 int main(int argc, char * argv[]) 
 {
 int  N=vector_length;
-//int threadno;
-REAL X[N];
-REAL Y[N];
-
+int threadno = NUM_THREADS;
 double elapsed;
 double elapsed_dist;
 
-//if (argc < 2) {
-  //  fprintf(stderr, "Usage: axpy <n> [<#threads(%d)>] (n should be dividable by #threads)\n", NUM_THREADS);
- //exit(1);
-// }
-// N = atoi(argv[1]);
-// if (argc > 2) threadno = atoi(argv[2]);
+if (argc < 2) {
+  fprintf(stderr, "Usage: axpy <n> [<#threads(%d)>] (n should be dividable by #threads)\n", threadno);
+exit(1);
+ }
+ N = atoi(argv[1]);
+ if (argc > 2) threadno = atoi(argv[2]);
 REAL a=0.1234;
-//REAL *X =(REAL *) malloc(sizeof(REAL)*N);
-//REAL *Y = (REAL *) malloc(sizeof(REAL)*N);
 
 //printf("%d: %d\n", N, NUM_THREADS);
 
 
- //srand48((1 << 12));
+srand48((1 << 12));
+REAL *X =(REAL *) malloc(sizeof(REAL)*N);
+REAL *Y = (REAL *) malloc(sizeof(REAL)*N);
+//REAL X[N];
+//REAL Y[N];
     init(X, N);
     init(Y, N);
 
@@ -86,15 +86,14 @@ REAL a=0.1234;
 
 std::thread thread[ threadno ];
 elapsed=read_timer();
-
 int i,j;
- for (i=0; i<threadno;++i)
+for(i=0; i<threadno;++i)
 {       int tid = i;
         int i_end,i_start, Nt;
         Nt = N/threadno;
         i_start = tid*Nt;
         i_end = (tid+1)*Nt; 
-
+        //printf("creating thread: %d\n", i);
         thread[i]=std::thread(axpy_cmth,i_start,i_end,(REAL *)Y, (REAL *)X, a);
 }      
 for(j=0;j<threadno;++j)

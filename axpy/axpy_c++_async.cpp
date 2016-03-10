@@ -6,14 +6,15 @@
 #include <thread> 
 #include <stdlib.h> 
 #include <sys/timeb.h>
+#include <stdio.h>
 //#define REAL REAL
 
 using namespace std;
 
-#define NUM_THREADS 5
+#define NUM_THREADS 64
 #define vector_length 102400
 
-#define BASE 1000
+#define BASE 100000
 #define REAL float
 
 /* read timer in second */
@@ -64,27 +65,43 @@ void axpy_async_task(int N, REAL *Y, REAL *X, REAL a) {
     }
 
 //===========================          
-int main() 
+int main(int argc, char * argv[]) 
 {
- int N=vector_length;
-REAL X[N];
-REAL Y[N];
-REAL a=0.1234;
+int N=vector_length;
+int M=NUM_THREADS;
+
 double elapsed;
 double elapsed_dist;
+
+if (argc < 2) {
+  fprintf(stderr, "Usage: axpy <n> [<#threads(%d)>] (n should be dividable by #threads)\n", M);
+exit(1);
+ }
+  N = atoi(argv[1]);
+  if (argc > 2)  M=atoi(argv[2]);
+REAL a=0.1234;
+
+srand48((1<<12));
+REAL *X =(REAL *) malloc(sizeof(REAL)*N);
+REAL *Y = (REAL *) malloc(sizeof(REAL)*N);
+init(X,N);
+init(Y,N);
+
 
 elapsed=read_timer();
  axpy_async_task( N, Y, X, a);
 elapsed=(read_timer() - elapsed); 
 
     printf("======================================================================================================\n");
-    printf("\tAXPY: Y[N] = Y[N] + a*X[N], N=%d, %d tasks for dist\n", N, NUM_THREADS);
+    printf("\tAXPY: Y[N] = Y[N] + a*X[N], N=%d, %d tasks for dist\n", N, M);
     printf("------------------------------------------------------------------------------------------------------\n");
     printf("Performance:\t\tRuntime (ms)\t MFLOPS \t\tError (compared to base)\n");
     printf("------------------------------------------------------------------------------------------------------\n");
     printf("axpy_c++_async:\t\t%4f\t%4f \t\t%g\n", elapsed * 1.0e3, (2.0 * N) / (1.0e6 * elapsed), check(Y, Y, N));
   
 
+free(Y);
+free(X);
 
 return 0;
 }
