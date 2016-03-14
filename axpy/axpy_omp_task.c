@@ -109,4 +109,24 @@ void axpy_omp_task(int N, REAL *Y, REAL *X, REAL a) {
      #pragma omp taskwait
                    }
     }
+
+void axpy_omp_taskloop(int N, REAL *Y, REAL *X, REAL a, int num_threads) {
+    int i;
+#pragma omp parallel shared(X, Y, a, N, num_threads)
+    {
+#pragma omp single
+    for (i=0; i<num_threads; i++) 
+    {   
+        int tid = i;
+        int end, start, Nt;
+        Nt = N/num_threads;
+        start = tid*Nt;
+        end = (tid+1)*Nt;
+        int i;
+	#pragma omp task shared(X, Y, a) firstprivate(start, end) private (i)
+        for (i=start; i<end; i++)
+                Y[i] += a * X[i];
+    }
+    }
+}
  
