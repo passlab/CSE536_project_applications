@@ -3,7 +3,7 @@
 #
 
 # DEBUG can be set to YES to include debugging info, or NO otherwise
-DEBUG          := NO
+DEBUG          := YES
 
 # PROFILE can be set to YES to include profiling info, or NO otherwise
 PROFILE        := NO
@@ -15,12 +15,12 @@ EXECUTABLE      := lud_omp
 SOURCES         := lud.c lud_omp.c ../common/common.c 
 
 # ------------  compiler  ------------------------------------------------------
-CC              := icc
-CXX             := icc
+CC              := gcc
+CXX             := g++
 
 # ------------  compiler flags  ------------------------------------------------
 DEBUG_CFLAGS    := -Wall -O0 -g
-RELEASE_CFLAGS  := -Wall -O0 
+RELEASE_CFLAGS  := -Wall -O3 
 COMMON_CFLAGS   := -fopenmp
 
 # ------------  compiler defs  ------------------------------------------------
@@ -48,8 +48,8 @@ CXXFLAGS       := ${CXXFLAGS} ${COMMON_CFLAGS}
 LDFLAGS        := ${LDFLAGS} ${COMMON_LDFLAGS}
 
 ifeq (YES, ${PROFILE})
-  CFLAGS       := ${CFLAGS}   -pg -O0
-  CXXFLAGS     := ${CXXFLAGS} -pg -O0
+  CFLAGS       := ${CFLAGS}   -pg -O3
+  CXXFLAGS     := ${CXXFLAGS} -pg -O3
   LDFLAGS      := ${LDFLAGS}  -pg
 endif
 
