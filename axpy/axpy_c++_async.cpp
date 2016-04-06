@@ -8,15 +8,16 @@
 #include <sys/timeb.h>
 #include <stdio.h>
 //#define REAL REAL
-
+#include <future>
+#include <vector>
 using namespace std;
 
-#define NUM_THREADS 64
+#define NUM_THREADS 1
 #define vector_length 102400
 
-#define BASE 100000
+#define BASE 1000
 #define REAL float
-
+std::vector <std::future<void>> f(vector_length/2);
 /* read timer in second */
 double read_timer() {
     struct timeb tm;
@@ -57,10 +58,11 @@ void axpy_async_task(int N, REAL *Y, REAL *X, REAL a) {
        for (i = 0; i < N; ++i)
           Y[i] += a * X[i];
             } else {
-
-   std::future<void> f1  = std::async(std::launch::async,axpy_async_task,N/2, Y, X, a);
+       for (int i=0; i<N/2;i++)
+        f[i]  = std::async(std::launch::async,axpy_async_task,N/2, Y, X, a);
         axpy_async_task(N-N/2, Y+N/2, X+N/2, a);
-   f1.get();     
+       for (int j=0;j<N/2;j++)   
+       f[j].get();     
                    }
     }
 
